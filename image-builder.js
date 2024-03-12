@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { spawn } = require("child_process");
+const { spawn, execSync } = require("child_process");
 const { program } = require('commander');
 
 function show_message(type, message) {
@@ -73,7 +73,7 @@ function start_vm(qemu_bin, cpu, arch, bios, machine, filename, pubkey) {
       qemu_process.stdin.write(
         "mkdir -p ~/.ssh && cat > ~/.ssh/authorized_keys <<EOF && chmod 600 ~/.ssh/authorized_keys && echo 'sshd_enable=\"YES\"' >> /etc/rc.conf && echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config && /etc/rc.d/sshd start && /etc/rc.d/sshd restart\n"
       );
-      qemu_process.stdin.write(pubkey + "\nEOF\n");
+      qemu_process.stdin.write(pubkey + "\nEOF\n\n");
     };
 
     let waitForPrompt = (() => {
@@ -87,6 +87,7 @@ function start_vm(qemu_bin, cpu, arch, bios, machine, filename, pubkey) {
             do_ssh_callback();
           } else {
             show_message("info", "SSH okay. VM is ready to use after shutting down.");
+            execSync("sleep 1");
             qemu_process.stdin.write("shutdown -p now\n");
             waitForPrompt = () => {};
           }
@@ -96,7 +97,6 @@ function start_vm(qemu_bin, cpu, arch, bios, machine, filename, pubkey) {
 
     qemu_process.stdout.on("data", (data) => {
       const msg = data.toString();
-      console.log(msg);
       waitForPrompt(msg);
     });
     qemu_process.stdin.write("root\n");
