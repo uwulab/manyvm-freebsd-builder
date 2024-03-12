@@ -1,0 +1,98 @@
+name: setup-freebsd
+
+on:
+  push:
+    # branches:
+    #   - main
+    tags:
+      - v*
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      QEMU_VERSION: "8.2.2"
+    strategy:
+      matrix:
+        # release: ["12.4", "13.3", "14.0"]
+        job:
+          - { release: "14.0", arch: "x86_64", freebsd_arch: "amd64" }
+    
+    name: FreeBSD ${{ matrix.job.arch }} ${{ matrix.job.release }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'lts'
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl gcc g++ git build-essential gettext \
+            libxml2-utils xsltproc libglib2.0-dev gnutls-dev python3-docutils libslirp-dev \
+            libyajl-dev meson libosinfo-1.0-dev libcurl4-openssl-dev libreadline-dev \
+            libnl-3-dev libudev-dev flex libnfs-dev libssh-dev libssh2-1-dev libpng-dev \
+            bison libusb-dev libsnappy-dev libsdl2-dev libpam0g-dev libbz2-dev liblzma-dev \
+            libzstd-dev libcap-ng-dev libjpeg-dev libvde-dev libvdeplug-dev liblzo2-dev \
+            libspice-server-dev libspice-protocol-dev ovmf
+
+      - name: Cache Precompiled QEMU
+        id: cache-qemu
+        uses: actions/cache@v4
+        with:
+          key: qemu-${{ env.QEMU_VERSION }}-x86_64-linux-gnu
+          path: |
+            ./qemu-${{ env.QEMU_VERSION }}-x86_64-linux-gnu.tar.xz
+
+      - name: Download Precompiled QEMU
+        if: steps.cache-qemu.outputs.cache-hit != 'true'
+        run: |
+          curl -fSL "https://github.com/cocoa-xu/qemu-build/releases/download/v${{ env.QEMU_VERSION }}/qemu-x86_64-linux-gnu.tar.xz" -o "qemu-x86_64-linux-gnu.tar.gz"
+
+      - name: Extract Precompiled QEMU
+        run: |
+          mkdir qemu
+          tar -xf qemu-x86_64-linux-gnu.tar.xz -C qemu
+
+      - name: Cache FreeBSD System Image
+        id: cache-freebsd-image
+        uses: actions/cache@v4
+        with:
+          key: freebsd-${{ matrix.job.release }}-${{ matrix.job.freebsd_arch }}
+          path: |
+            ./FreeBSD-${{ matrix.job.release }}-RELEASE-${{ matrix.job.freebsd_arch }}.qcow2.xz
+
+      - name: Download FreeBSD System Image
+        if: steps.cache-freebsd-image.outputs.cache-hit != 'true'
+        run: |
+          case ${{ matrix.job.release }} in
+            14.0 | 13.3 | 12.4)
+              curl -fSL "https://download.freebsd.org/releases/VM-IMAGES/${{ matrix.job.release }}-RELEASE/${{ matrix.job.freebsd_arch }}/Latest/FreeBSD-${{ matrix.job.release }}-RELEASE-${{ matrix.job.freebsd_arch }}.qcow2.xz" -o "FreeBSD-${{ matrix.job.release }}-RELEASE-${{ matrix.job.freebsd_arch }}.qcow2.xz"
+              ;;
+            *)
+              echo "Unsupported FreeBSD version: ${{ matrix.job.release }}"
+              exit 1
+              ;;
+          esac
+
+      - name: Extract FreeBSD System Image
+        run: |
+          xz -d FreeBSD-${{ matrix.job.release }}-RELEASE-${{ matrix.job.freebsd_arch }}.qcow2.xz
+
+      - name: Setup System Image
+        run: |
+          node ./image-builder.js \
+            --qemu-bin ./qemu \
+            --os freebsd \
+            --arch ${{ matrix.job.arch }} \
+            --image FreeBSD-${{ matrix.job.release }}-RELEASE-${{ matrix.job.freebsd_arch }}.qcow2
