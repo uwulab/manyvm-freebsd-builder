@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       QEMU_VERSION: "8.2.2"
+      OS_TYPE: freebsd
     strategy:
       matrix:
         # release: ["12.4", "13.3", "14.0"]
@@ -104,10 +105,23 @@ jobs:
 
       - name: Setup System Image
         run: |
+          QCOW2_FILENAME="FreeBSD-${{ matrix.job.release }}-RELEASE-${{ matrix.job.freebsd_arch }}-${{ matrix.job.arch }}.qcow2"
           npm install -g yarn
           yarn install
           node ./image-builder.js \
-            --qemu-bin ./qemu \
-            --os freebsd \
+            --qemu ./qemu \
+            --os ${{ env.OS_TYPE }} \
             --arch ${{ matrix.job.arch }} \
             --image FreeBSD-${{ matrix.job.release }}-RELEASE-${{ matrix.job.freebsd_arch }}.qcow2
+            --pubkey $(pwd)/id_rsa.pub
+          
+          echo "Archiving $QCOW2_FILENAME"
+          xz -e -9 -T0 "${QCOW2_FILENAME}"
+          mv "${QCOW2_FILENAME}.xz" "manyvm-${QCOW2_FILENAME}.xz"
+          ls -lah "manyvm-${QCOW2_FILENAME}.xz"
+
+      - uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            manyvm-*.xz
