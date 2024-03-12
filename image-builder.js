@@ -115,6 +115,10 @@ async function start_vm(qemu_bin, cpu, arch, bios, machine, filename, pubkey) {
             show_message("info", "SSH okay. VM is ready to use after shutting down.");
             execSync("sleep 1");
             qemu_process.stdin.write("shutdown -p now\n");
+            setTimeout(() => {
+              execSync("force shutdown if not stopped in 30 seconds.");
+              qemu_process.kill();
+            }, 30000)
             waitForPrompt = () => {};
           }
         }
