@@ -159,7 +159,7 @@ try {
     .option("--image <image>", "Path to the qcow2 image file")
     .option("--pubkey <pubkey>", "Path to the public key file");
   
-  program.parse(process);
+  program.parse();
 
   const options = program.opts();
 
