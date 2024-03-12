@@ -105,16 +105,16 @@ jobs:
 
       - name: Setup System Image
         run: |
-          QCOW2_FILENAME="FreeBSD-${{ matrix.job.release }}-RELEASE-${{ matrix.job.freebsd_arch }}-${{ matrix.job.arch }}.qcow2"
+          QCOW2_FILENAME="FreeBSD-${{ matrix.job.release }}-RELEASE-${{ matrix.job.freebsd_arch }}.qcow2"
           npm install -g yarn
           yarn install
           node ./image-builder.js \
-            --qemu ./qemu \
-            --os ${{ env.OS_TYPE }} \
-            --arch ${{ matrix.job.arch }} \
-            --image FreeBSD-${{ matrix.job.release }}-RELEASE-${{ matrix.job.freebsd_arch }}.qcow2
-            --pubkey $(pwd)/id_rsa.pub
-          
+            --qemu "$(pwd)/qemu/usr/local/bin" \
+            --os "${{ env.OS_TYPE }}" \
+            --arch "${{ matrix.job.arch }}" \
+            --image "$(pwd)/${QCOW2_FILENAME}" \
+            --pubkey "$(pwd)/id_rsa.pub" 
+
           echo "Archiving $QCOW2_FILENAME"
           xz -e -9 -T0 "${QCOW2_FILENAME}"
           mv "${QCOW2_FILENAME}.xz" "manyvm-${QCOW2_FILENAME}.xz"
