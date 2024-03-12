@@ -24,7 +24,6 @@ function qemu_wrapper(qemu_cmd, qemu_args, ready_callback) {
   );
   const qemuProcess = spawn(qemu_cmd, qemu_args);
 
-  let pressed_enter = false;
   let waitForLogin = (() => {
     let concat = "";
     return (data) => {
@@ -32,10 +31,6 @@ function qemu_wrapper(qemu_cmd, qemu_args, ready_callback) {
       if (concat.includes("login")) {
         ready_callback(qemuProcess);
         waitForLogin = () => {};
-      }
-      if (!pressed_enter && concat.includes("Welcome to FreeBSD")) {
-        qemuProcess.stdin.write("\n");
-        pressed_enter = true;
       }
     };
   })();
