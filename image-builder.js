@@ -138,8 +138,9 @@ start_vm = (qemu_bin, cpu, arch, bios, machine, filename, pubkey) => {
             ssh_ready = true;
             do_ssh_callback();
           } else {
-            show_message("info", "SSH okay. VM is ready to use.");
-            waitForLogin = () => {};
+            show_message("info", "SSH okay. VM is ready to use after shutting down.");
+            qemu_process.stdin.write("shutdown -p now\n");
+            waitForPrompt = () => {};
           }
         }
       };
