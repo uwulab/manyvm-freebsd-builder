@@ -1,12 +1,17 @@
-name: setup-freebsd
+name: setup-freebsd-manual
 
 on:
-  push:
-    tags:
-      - "freebsd-v*"
+  workflow_dispatch:
+    inputs:
+      release:
+        required: true
+      arch:
+        required: true
+      freebsd_arch:
+        required: true
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event.inputs.release }}-${{ github.event.inputs.arch }}
   cancel-in-progress: true
 
 permissions:
@@ -18,27 +23,8 @@ jobs:
     env:
       QEMU_VERSION: "8.2.2"
       OS_TYPE: freebsd
-    strategy:
-      matrix:
-        job:
-          - { release: "14.0", arch: "x86_64", freebsd_arch: "amd64" }
-          - { release: "13.3", arch: "x86_64", freebsd_arch: "amd64" }
-          - { release: "13.2", arch: "x86_64", freebsd_arch: "amd64" }
-          - { release: "12.4", arch: "x86_64", freebsd_arch: "amd64" }
-          - { release: "14.0", arch: "aarch64", freebsd_arch: "arm64-aarch64" }
-          - { release: "13.3", arch: "aarch64", freebsd_arch: "arm64-aarch64" }
-          - { release: "13.2", arch: "aarch64", freebsd_arch: "arm64-aarch64" }
-          - { release: "12.4", arch: "aarch64", freebsd_arch: "arm64-aarch64" }
-          # - { release: "14.0", arch: "i386", freebsd_arch: "i386" }
-          # - { release: "13.3", arch: "i386", freebsd_arch: "i386" }
-          # - { release: "13.2", arch: "i386", freebsd_arch: "i386" }
-          # - { release: "12.4", arch: "i386", freebsd_arch: "i386" }
-          # - { release: "14.0", arch: "riscv64", freebsd_arch: "riscv-riscv64" }
-          # - { release: "13.3", arch: "riscv64", freebsd_arch: "riscv-riscv64" }
-          # - { release: "13.2", arch: "riscv64", freebsd_arch: "riscv-riscv64" }
-      fail-fast: false
 
-    name: FreeBSD ${{ matrix.job.arch }} ${{ matrix.job.release }}
+    name: FreeBSD ${{ inputs.arch }} ${{ inputs.release }}
 
     steps:
       - name: Checkout
@@ -82,15 +68,15 @@ jobs:
         id: cache-freebsd-image
         uses: actions/cache@v4
         with:
-          key: freebsd-${{ matrix.job.release }}-${{ matrix.job.freebsd_arch }}
+          key: freebsd-${{ inputs.release }}-${{ inputs.freebsd_arch }}
           path: |
-            ./FreeBSD-${{ matrix.job.release }}-RELEASE-${{ matrix.job.freebsd_arch }}.qcow2.xz
+            ./FreeBSD-${{ inputs.release }}-RELEASE-${{ inputs.freebsd_arch }}.qcow2.xz
 
       - name: Download FreeBSD System Image
         if: steps.cache-freebsd-image.outputs.cache-hit != 'true'
         run: |
-          export ARCH_IN_URL="${{ matrix.job.freebsd_arch }}"
-          case ${{ matrix.job.freebsd_arch }} in
+          export ARCH_IN_URL="${{ inputs.freebsd_arch }}"
+          case ${{ inputs.freebsd_arch }} in
             arm64-aarch64)
               export ARCH_IN_URL="aarch64"
               ;;
@@ -98,31 +84,31 @@ jobs:
               export ARCH_IN_URL="riscv64"
               ;;
           esac
-          case ${{ matrix.job.release }} in
+          case ${{ inputs.release }} in
             14.0 | 13.3 | 13.2 | 12.4)
-              curl -fSL "https://download.freebsd.org/releases/VM-IMAGES/${{ matrix.job.release }}-RELEASE/${ARCH_IN_URL}/Latest/FreeBSD-${{ matrix.job.release }}-RELEASE-${{ matrix.job.freebsd_arch }}.qcow2.xz" -o "FreeBSD-${{ matrix.job.release }}-RELEASE-${{ matrix.job.freebsd_arch }}.qcow2.xz"
+              curl -fSL "https://download.freebsd.org/releases/VM-IMAGES/${{ inputs.release }}-RELEASE/${ARCH_IN_URL}/Latest/FreeBSD-${{ inputs.release }}-RELEASE-${{ inputs.freebsd_arch }}.qcow2.xz" -o "FreeBSD-${{ inputs.release }}-RELEASE-${{ inputs.freebsd_arch }}.qcow2.xz"
               ;;
             *)
-              echo "Unsupported FreeBSD version: ${{ matrix.job.release }}"
+              echo "Unsupported FreeBSD version: ${{ inputs.release }}"
               exit 1
               ;;
           esac
 
       - name: Extract FreeBSD System Image
         run: |
-          xz -d -k FreeBSD-${{ matrix.job.release }}-RELEASE-${{ matrix.job.freebsd_arch }}.qcow2.xz
+          xz -d -k FreeBSD-${{ inputs.release }}-RELEASE-${{ inputs.freebsd_arch }}.qcow2.xz
 
       - name: Setup System Image
         run: |
           chmod 400 $(pwd)/id_rsa
 
-          QCOW2_FILENAME="FreeBSD-${{ matrix.job.release }}-RELEASE-${{ matrix.job.freebsd_arch }}.qcow2"
+          QCOW2_FILENAME="FreeBSD-${{ inputs.release }}-RELEASE-${{ inputs.freebsd_arch }}.qcow2"
           npm install -g yarn
           yarn install
           node ./image-builder.js \
             --qemu "$(pwd)/qemu/usr/local/bin" \
             --os "${{ env.OS_TYPE }}" \
-            --arch "${{ matrix.job.arch }}" \
+            --arch "${{ inputs.arch }}" \
             --image "$(pwd)/${QCOW2_FILENAME}" \
             --pubkey "$(pwd)/id_rsa.pub" \
             --privkey "$(pwd)/id_rsa"
@@ -133,9 +119,8 @@ jobs:
           ls -lah "manyvm-${QCOW2_FILENAME}.xz"
 
       - uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
         with:
-          tag_name: v${{ matrix.job.release }}
-          name: v${{ matrix.job.release }}
+          tag_name: v${{ inputs.release }}
+          name: v${{ inputs.release }}
           files: |
             manyvm-*.xz
