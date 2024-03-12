@@ -113,7 +113,7 @@ jobs:
             --os "${{ env.OS_TYPE }}" \
             --arch "${{ matrix.job.arch }}" \
             --image "$(pwd)/${QCOW2_FILENAME}" \
-            --pubkey "$(pwd)/id_rsa.pub" 
+            --pubkey "$(pwd)/id_rsa.pub"
 
           echo "Archiving $QCOW2_FILENAME"
           xz -e -9 -T0 "${QCOW2_FILENAME}"

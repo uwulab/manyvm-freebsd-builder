@@ -50,62 +50,21 @@ function start_vm(qemu_bin, cpu, arch, bios, machine, filename, pubkey) {
   show_message("info", "Starting VM");
 
   const qemu_executable = `${qemu_bin}/qemu-system-${arch}`;
-  let qemu_args = [];
-  switch (arch) {
-    case "amd64":
-    case "x86_64":
-    case "i386":
-      qemu_args = [
-        "-machine",
-        machine,
-        "-cpu",
-        cpu,
-        "-smp",
-        "2",
-        "-bios",
-        bios,
-        "-m",
-        "512",
-        "-nographic",
-        "-drive",
-        `file=${filename},format=qcow2`
-      ];
-      break;
-    case "aarch64":
-      qemu_args = [
-        "-machine",
-        machine,
-        "-cpu",
-        cpu,
-        "-smp",
-        "2",
-        "-bios",
-        bios,
-        "-m",
-        "512",
-        "-nographic",
-        "-drive",
-        `file=${filename},format=qcow2`
-      ];
-      break;
-    case "riscv64":
-      qemu_args = [
-        "-machine",
-        machine,
-        "-cpu",
-        cpu,
-        "-smp",
-        "2",
-        "-bios",
-        bios,
-        "-m",
-        "512",
-        "-nographic",
-        "-drive",
-        `file=${filename},format=qcow2`
-      ];
-      break;
-  }
+  let qemu_args = [
+    "-machine",
+    machine,
+    "-cpu",
+    cpu,
+    "-smp",
+    "2",
+    "-bios",
+    bios,
+    "-m",
+    "512",
+    "-nographic",
+    "-drive",
+    `file=${filename},format=qcow2`
+  ];
 
   qemu_wrapper(qemu_executable, qemu_args, (qemu_process) => {
     show_message("info", "VM is started");
@@ -165,9 +124,13 @@ try {
   switch (arch) {
     case "amd64":
     case "x86_64":
-    case "i386":
       machine = "pc";
       cpu = "qemu64";
+      bios = "/usr/share/qemu/OVMF.fd";
+      break;
+    case "i386":
+      machine = "pc";
+      cpu = "Penryn";
       bios = "/usr/share/qemu/OVMF.fd";
       break;
     case "aarch64":
