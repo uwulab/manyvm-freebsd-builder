@@ -115,9 +115,9 @@ jobs:
             --image "$(pwd)/${QCOW2_FILENAME}" \
             --pubkey "$(pwd)/id_rsa.pub"
 
-          echo "Archiving $QCOW2_FILENAME"
-          xz -e -9 -T0 "${QCOW2_FILENAME}"
-          mv "${QCOW2_FILENAME}.xz" "manyvm-${QCOW2_FILENAME}.xz"
+          mv "${QCOW2_FILENAME}" "manyvm-${QCOW2_FILENAME}"
+          echo "Archiving manyvm-$QCOW2_FILENAME"
+          xz -e -9 -T0 "manyvm-${QCOW2_FILENAME}"
           ls -lah "manyvm-${QCOW2_FILENAME}.xz"
 
       - uses: softprops/action-gh-release@v2
