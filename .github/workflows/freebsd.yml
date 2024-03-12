@@ -22,12 +22,22 @@ jobs:
       OS_TYPE: freebsd
     strategy:
       matrix:
-        # release: ["12.4", "13.3", "14.0"]
         job:
           - { release: "14.0", arch: "x86_64", freebsd_arch: "amd64" }
-          # - { release: "14.0", arch: "i386", freebsd_arch: "i386" }
+          - { release: "13.3", arch: "x86_64", freebsd_arch: "amd64" }
+          - { release: "13.2", arch: "x86_64", freebsd_arch: "amd64" }
+          - { release: "12.4", arch: "x86_64", freebsd_arch: "amd64" }
           - { release: "14.0", arch: "aarch64", freebsd_arch: "arm64-aarch64" }
+          - { release: "13.3", arch: "aarch64", freebsd_arch: "arm64-aarch64" }
+          - { release: "13.2", arch: "aarch64", freebsd_arch: "arm64-aarch64" }
+          - { release: "12.4", arch: "aarch64", freebsd_arch: "arm64-aarch64" }
+          # - { release: "14.0", arch: "i386", freebsd_arch: "i386" }
+          # - { release: "13.3", arch: "i386", freebsd_arch: "i386" }
+          # - { release: "13.2", arch: "i386", freebsd_arch: "i386" }
+          # - { release: "12.4", arch: "i386", freebsd_arch: "i386" }
           # - { release: "14.0", arch: "riscv64", freebsd_arch: "riscv-riscv64" }
+          # - { release: "13.3", arch: "riscv64", freebsd_arch: "riscv-riscv64" }
+          # - { release: "13.2", arch: "riscv64", freebsd_arch: "riscv-riscv64" }
       fail-fast: false
 
     name: FreeBSD ${{ matrix.job.arch }} ${{ matrix.job.release }}
