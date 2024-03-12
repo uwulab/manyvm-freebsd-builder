@@ -24,7 +24,9 @@ jobs:
         # release: ["12.4", "13.3", "14.0"]
         job:
           - { release: "14.0", arch: "x86_64", freebsd_arch: "amd64" }
-          # - { release: "14.0", arch: "aarch64", freebsd_arch: "arm64-aarch64" }
+          - { release: "14.0", arch: "x86_64", freebsd_arch: "i386" }
+          - { release: "14.0", arch: "aarch64", freebsd_arch: "arm64-aarch64" }
+          - { release: "14.0", arch: "riscv64", freebsd_arch: "riscv-aarch64" }
 
     name: FreeBSD ${{ matrix.job.arch }} ${{ matrix.job.release }}
 
@@ -35,7 +37,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 'lts'
-      
+
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -76,9 +78,15 @@ jobs:
       - name: Download FreeBSD System Image
         if: steps.cache-freebsd-image.outputs.cache-hit != 'true'
         run: |
+          export ARCH_IN_URL="${{ matrix.job.freebsd_arch }}"
+          case ${{ matrix.job.freebsd_arch }} in
+            arm64-aarch64)
+              export ARCH_IN_URL="aarch64"
+              ;;
+          esac
           case ${{ matrix.job.release }} in
             14.0 | 13.3 | 12.4)
-              curl -fSL "https://download.freebsd.org/releases/VM-IMAGES/${{ matrix.job.release }}-RELEASE/${{ matrix.job.freebsd_arch }}/Latest/FreeBSD-${{ matrix.job.release }}-RELEASE-${{ matrix.job.freebsd_arch }}.qcow2.xz" -o "FreeBSD-${{ matrix.job.release }}-RELEASE-${{ matrix.job.freebsd_arch }}.qcow2.xz"
+              curl -fSL "https://download.freebsd.org/releases/VM-IMAGES/${{ matrix.job.release }}-RELEASE/${ARCH_IN_URL}/Latest/FreeBSD-${{ matrix.job.release }}-RELEASE-${{ matrix.job.freebsd_arch }}.qcow2.xz" -o "FreeBSD-${{ matrix.job.release }}-RELEASE-${{ matrix.job.freebsd_arch }}.qcow2.xz"
               ;;
             *)
               echo "Unsupported FreeBSD version: ${{ matrix.job.release }}"
@@ -92,6 +100,8 @@ jobs:
 
       - name: Setup System Image
         run: |
+          npm install -g yarn
+          yarn install
           node ./image-builder.js \
             --qemu-bin ./qemu \
             --os freebsd \
