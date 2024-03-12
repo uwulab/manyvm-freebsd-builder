@@ -101,7 +101,7 @@ jobs:
 
       - name: Extract FreeBSD System Image
         run: |
-          xz -d FreeBSD-${{ matrix.job.release }}-RELEASE-${{ matrix.job.freebsd_arch }}.qcow2.xz
+          xz -d -k FreeBSD-${{ matrix.job.release }}-RELEASE-${{ matrix.job.freebsd_arch }}.qcow2.xz
 
       - name: Setup System Image
         run: |
