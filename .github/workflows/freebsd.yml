@@ -100,7 +100,7 @@ jobs:
               ;;
           esac
           case ${{ matrix.job.release }} in
-            14.0 | 13.3 | 12.4)
+            14.0 | 13.3 | 13.2 | 12.4)
               curl -fSL "https://download.freebsd.org/releases/VM-IMAGES/${{ matrix.job.release }}-RELEASE/${ARCH_IN_URL}/Latest/FreeBSD-${{ matrix.job.release }}-RELEASE-${{ matrix.job.freebsd_arch }}.qcow2.xz" -o "FreeBSD-${{ matrix.job.release }}-RELEASE-${{ matrix.job.freebsd_arch }}.qcow2.xz"
               ;;
             *)
