@@ -46,7 +46,7 @@ function qemu_wrapper(qemu_cmd, qemu_args, ready_callback) {
   return qemuProcess;
 };
 
-function start_vm(qemu_bin, cpu, arch, bios, machine, filename, pubkey) {
+async function start_vm(qemu_bin, cpu, arch, bios, machine, filename, pubkey) {
   show_message("info", "Starting VM");
 
   const qemu_executable = `${qemu_bin}/qemu-system-${arch}`;
@@ -71,16 +71,32 @@ function start_vm(qemu_bin, cpu, arch, bios, machine, filename, pubkey) {
     let ssh_ready = false;
     let ssh_done = false;
     let do_ssh_callback = () => {
-      qemu_process.stdin.write("mkdir -p ~/.ssh\n")
+      let cmd = "mkdir -p ~/.ssh\n";
+      qemu_process.stdin.write(cmd)
+      show_message("info", cmd)
       execSync("sleep 1")
-      qemu_process.stdin.write("echo 'sshd_enable=\"YES\"' >> /etc/rc.conf\n")
+      cmd = "echo 'sshd_enable=\"YES\"' >> /etc/rc.conf\n"
+      qemu_process.stdin.write(cmd)
+      show_message("info", cmd)
       execSync("sleep 1")
-      qemu_process.stdin.write("echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config\n")
+      cmd = "echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config\n";
+      qemu_process.stdin.write(cmd)
+      show_message("info", cmd)
       execSync("sleep 1")
-      qemu_process.stdin.write("/etc/rc.d/sshd start && /etc/rc.d/sshd restart\n")
+      cmd = "/etc/rc.d/sshd start && /etc/rc.d/sshd restart\n";
+      qemu_process.stdin.write(cmd)
+      show_message("info", cmd)
+      execSync("sleep 10")
+      cmd = "cat > ~/.ssh/authorized_keys <<EOF && chmod 600 ~/.ssh/authorized_keys\n";
+      qemu_process.stdin.write(cmd)
+      show_message("info", cmd)
       execSync("sleep 1")
-      qemu_process.stdin.write("cat > ~/.ssh/authorized_keys <<EOF && chmod 600 ~/.ssh/authorized_keys\n");
-      execSync("sleep 1")
+      const pubkey_chunks = pubkey.match(/.{1,16}/g);
+      pubkey_chunks.forEach((chunk) => {
+        qemu_process.stdin.write(chunk);
+        show_message("info", chunk)
+        execSync("sleep 1")
+      });
       qemu_process.stdin.write(pubkey + "\nEOF\n\n");
       execSync("sleep 1")
       ssh_done = true;
