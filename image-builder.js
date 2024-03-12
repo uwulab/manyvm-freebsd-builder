@@ -83,6 +83,7 @@ function start_vm(qemu_bin, cpu, arch, bios, machine, filename, pubkey) {
         if (concat.includes("root@freebsd:~ #")) {
           if (!ssh_ready) {
             ssh_ready = true;
+            concat = "";
             do_ssh_callback();
           } else {
             show_message("info", "SSH okay. VM is ready to use after shutting down.");
