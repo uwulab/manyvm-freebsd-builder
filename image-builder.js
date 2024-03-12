@@ -157,10 +157,11 @@ try {
     .option("--os <type>", "OS type")
     .option("--arch <arch>", "CPU architecture")
     .option("--image <image>", "Path to the qcow2 image file")
-    .option("--pubkey <pubkey>", "Path to the public key file")
-    .parse(process.argv);
+    .option("--pubkey <pubkey>", "Path to the public key file");
+  
+  program.parse(process);
 
-  const options = commander.opts();
+  const options = program.opts();
 
   let image_filename = options.image;
   if (!fs.existsSync(image_filename)) {
