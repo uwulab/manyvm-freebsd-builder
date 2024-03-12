@@ -79,7 +79,9 @@ function start_vm(qemu_bin, cpu, arch, bios, machine, filename, pubkey) {
     let waitForPrompt = (() => {
       let concat = "";
       return (data) => {
-        concat += data.toString();
+        const msg = data.toString();
+        console.log(msg);
+        concat += msg;
         if (concat.includes("root@freebsd:~ #")) {
           if (!ssh_ready) {
             ssh_ready = true;
