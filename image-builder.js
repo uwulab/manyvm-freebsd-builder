@@ -69,11 +69,21 @@ function start_vm(qemu_bin, cpu, arch, bios, machine, filename, pubkey) {
   qemu_wrapper(qemu_executable, qemu_args, (qemu_process) => {
     show_message("info", "VM is started");
     let ssh_ready = false;
+    let ssh_done = false;
     let do_ssh_callback = () => {
-      qemu_process.stdin.write(
-        "mkdir -p ~/.ssh && cat > ~/.ssh/authorized_keys <<EOF && chmod 600 ~/.ssh/authorized_keys && echo 'sshd_enable=\"YES\"' >> /etc/rc.conf && echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config && /etc/rc.d/sshd start && /etc/rc.d/sshd restart\n"
-      );
+      qemu_process.stdin.write("mkdir -p ~/.ssh\n")
+      execSync("sleep 1")
+      qemu_process.stdin.write("echo 'sshd_enable=\"YES\"' >> /etc/rc.conf\n")
+      execSync("sleep 1")
+      qemu_process.stdin.write("echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config\n")
+      execSync("sleep 1")
+      qemu_process.stdin.write("/etc/rc.d/sshd start && /etc/rc.d/sshd restart\n")
+      execSync("sleep 1")
+      qemu_process.stdin.write("cat > ~/.ssh/authorized_keys <<EOF && chmod 600 ~/.ssh/authorized_keys\n");
+      execSync("sleep 1")
       qemu_process.stdin.write(pubkey + "\nEOF\n\n");
+      execSync("sleep 1")
+      ssh_done = true;
     };
 
     let waitForPrompt = (() => {
@@ -85,7 +95,7 @@ function start_vm(qemu_bin, cpu, arch, bios, machine, filename, pubkey) {
             ssh_ready = true;
             concat = "";
             do_ssh_callback();
-          } else {
+          } else if (ssh_done) {
             show_message("info", "SSH okay. VM is ready to use after shutting down.");
             execSync("sleep 1");
             qemu_process.stdin.write("shutdown -p now\n");
