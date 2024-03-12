@@ -60,7 +60,7 @@ jobs:
       - name: Download Precompiled QEMU
         if: steps.cache-qemu.outputs.cache-hit != 'true'
         run: |
-          curl -fSL "https://github.com/cocoa-xu/qemu-build/releases/download/v${{ env.QEMU_VERSION }}/qemu-x86_64-linux-gnu.tar.xz" -o "qemu-x86_64-linux-gnu.tar.gz"
+          curl -fSL "https://github.com/cocoa-xu/qemu-build/releases/download/v${{ env.QEMU_VERSION }}/qemu-x86_64-linux-gnu.tar.xz" -o "qemu-x86_64-linux-gnu.tar.xz"
 
       - name: Extract Precompiled QEMU
         run: |
