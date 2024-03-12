@@ -24,9 +24,10 @@ jobs:
         # release: ["12.4", "13.3", "14.0"]
         job:
           - { release: "14.0", arch: "x86_64", freebsd_arch: "amd64" }
-          - { release: "14.0", arch: "x86_64", freebsd_arch: "i386" }
+          - { release: "14.0", arch: "i386", freebsd_arch: "i386" }
           - { release: "14.0", arch: "aarch64", freebsd_arch: "arm64-aarch64" }
-          - { release: "14.0", arch: "riscv64", freebsd_arch: "riscv-aarch64" }
+          - { release: "14.0", arch: "riscv64", freebsd_arch: "riscv-riscv64" }
+      fail-fast: false
 
     name: FreeBSD ${{ matrix.job.arch }} ${{ matrix.job.release }}
 
@@ -82,6 +83,9 @@ jobs:
           case ${{ matrix.job.freebsd_arch }} in
             arm64-aarch64)
               export ARCH_IN_URL="aarch64"
+              ;;
+            riscv-riscv64)
+              export ARCH_IN_URL="riscv64"
               ;;
           esac
           case ${{ matrix.job.release }} in
