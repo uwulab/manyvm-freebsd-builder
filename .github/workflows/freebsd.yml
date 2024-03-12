@@ -57,7 +57,7 @@ jobs:
         with:
           key: qemu-${{ env.QEMU_VERSION }}-x86_64-linux-gnu
           path: |
-            ./qemu-${{ env.QEMU_VERSION }}-x86_64-linux-gnu.tar.xz
+            ./qemu-x86_64-linux-gnu.tar.xz
 
       - name: Download Precompiled QEMU
         if: steps.cache-qemu.outputs.cache-hit != 'true'

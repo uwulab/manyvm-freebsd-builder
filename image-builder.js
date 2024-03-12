@@ -91,7 +91,7 @@ async function start_vm(qemu_bin, cpu, arch, bios, machine, filename, pubkey) {
       qemu_process.stdin.write(cmd)
       show_message("info", cmd)
       execSync("sleep 1")
-      const pubkey_chunks = pubkey.match(/.{1,16}/g);
+      const pubkey_chunks = pubkey.match(/.{1,32}/g);
       pubkey_chunks.forEach((chunk) => {
         qemu_process.stdin.write(chunk);
         show_message("info", chunk)
@@ -116,7 +116,7 @@ async function start_vm(qemu_bin, cpu, arch, bios, machine, filename, pubkey) {
             execSync("sleep 1");
             qemu_process.stdin.write("shutdown -p now\n");
             setTimeout(() => {
-              execSync("force shutdown if not stopped in 30 seconds.");
+              show_message("info", "force shutdown if not stopped in 30 seconds.");
               qemu_process.kill();
             }, 30000)
             waitForPrompt = () => {};
