@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
-const { spawnSync } = require("child_process");
+const { spawn } = require("child_process");
+const { program } = require('commander');
 
 show_message = (type, message) => {
   if (type == "error") {
@@ -151,11 +152,7 @@ start_vm = (qemu_bin, cpu, arch, bios, machine, filename, pubkey) => {
 };
 
 try {
-  const commander = require("commander");
-
-  commander
-    .version("1.0.0", "-v, --version")
-    .usage("[OPTIONS]...")
+  program
     .option("--qemu <qemu>", "bin directory for QEMU")
     .option("--os <type>", "OS type")
     .option("--arch <arch>", "CPU architecture")
