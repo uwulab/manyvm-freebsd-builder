@@ -3,7 +3,7 @@ const path = require("path");
 const { spawn } = require("child_process");
 const { program } = require('commander');
 
-show_message = (type, message) => {
+function show_message(type, message) {
   if (type == "error") {
     console.error(message);
   } else if (type == "fatal") {
@@ -12,9 +12,9 @@ show_message = (type, message) => {
   } else {
     console.log(message);
   }
-};
+}
 
-qemu_wrapper = (qemu_cmd, qemu_args, ready_callback) => {
+function qemu_wrapper(qemu_cmd, qemu_args, ready_callback) {
   show_message(
     "info",
     "starting qemu process with command: " +
@@ -24,6 +24,7 @@ qemu_wrapper = (qemu_cmd, qemu_args, ready_callback) => {
   );
   const qemuProcess = spawn(qemu_cmd, qemu_args);
 
+  let pressed_enter = false;
   let waitForLogin = (() => {
     let concat = "";
     return (data) => {
@@ -31,6 +32,10 @@ qemu_wrapper = (qemu_cmd, qemu_args, ready_callback) => {
       if (concat.includes("login")) {
         ready_callback(qemuProcess);
         waitForLogin = () => {};
+      }
+      if (!pressed_enter && concat.includes("Welcome to FreeBSD")) {
+        qemuProcess.stdin.write("\n");
+        pressed_enter = true;
       }
     };
   })();
@@ -46,7 +51,7 @@ qemu_wrapper = (qemu_cmd, qemu_args, ready_callback) => {
   return qemuProcess;
 };
 
-start_vm = (qemu_bin, cpu, arch, bios, machine, filename, pubkey) => {
+function start_vm(qemu_bin, cpu, arch, bios, machine, filename, pubkey) {
   show_message("info", "Starting VM");
 
   const qemu_executable = `${qemu_bin}/qemu-system-${arch}`;
@@ -65,14 +70,10 @@ start_vm = (qemu_bin, cpu, arch, bios, machine, filename, pubkey) => {
         "-bios",
         bios,
         "-m",
-        "2048",
+        "512",
         "-nographic",
         "-drive",
-        `file=${filename},format=qcow2`,
-        "-netdev",
-        `user,id=net0,hostfwd=tcp::2222-:22`,
-        "-device",
-        "virtio-net-pci,netdev=net0",
+        `file=${filename},format=qcow2`
       ];
       break;
     case "aarch64":
@@ -86,14 +87,10 @@ start_vm = (qemu_bin, cpu, arch, bios, machine, filename, pubkey) => {
         "-bios",
         bios,
         "-m",
-        "2048",
+        "512",
         "-nographic",
         "-drive",
-        `file=${filename},format=qcow2`,
-        "-netdev",
-        `user,id=net0,hostfwd=tcp::2222-:22`,
-        "-device",
-        "virtio-net-pci,netdev=net0",
+        `file=${filename},format=qcow2`
       ];
       break;
     case "riscv64":
@@ -107,14 +104,10 @@ start_vm = (qemu_bin, cpu, arch, bios, machine, filename, pubkey) => {
         "-bios",
         bios,
         "-m",
-        "2048",
+        "512",
         "-nographic",
         "-drive",
-        `file=${filename},format=qcow2`,
-        "-netdev",
-        `user,id=net0,hostfwd=tcp::2222-:22`,
-        "-device",
-        "virtio-net-pci,netdev=net0",
+        `file=${filename},format=qcow2`
       ];
       break;
   }
@@ -181,7 +174,6 @@ try {
       machine = "pc";
       cpu = "qemu64";
       bios = "/usr/share/qemu/OVMF.fd";
-
       break;
     case "aarch64":
       machine = "virt,gic-version=3";
