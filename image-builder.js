@@ -62,7 +62,7 @@ async function start_vm(qemu_bin, cpu, arch, bios, machine, filename, pubkey_con
   ];
   switch (arch) {
     case "riscv64":
-      qemu_args.push("-device", `file=${filename},format=qcow2,id=hd0`);
+      qemu_args.push("-drive", `file=${filename},format=qcow2,id=hd0`);
       qemu_args.push("-device", `virtio-blk-device,drive=hd0`);
       break;
     default:
