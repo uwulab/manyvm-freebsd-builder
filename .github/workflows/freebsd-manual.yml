@@ -9,6 +9,9 @@ on:
         required: true
       freebsd_arch:
         required: true
+      riscv64_bootloader:
+        required: false
+        default: "2024.01-1.4"
       debug:
         required: false
         default: "false"
@@ -108,7 +111,11 @@ jobs:
           QCOW2_FILENAME="FreeBSD-${{ inputs.release }}-RELEASE-${{ inputs.freebsd_arch }}.qcow2"
           npm install -g yarn
           yarn install
-          
+
+          if [ "${{ inputs.arch }}" = "riscv64" ]; then
+            curl -fSL "https://github.com/uwulab/manyvm-freebsd-riscv64-boot/releases/download/v${{ inputs.riscv64_bootloader }}/fw_payload.elf" -o fw_payload.elf
+          fi
+
           export ARGS=(
             --qemu "$(pwd)/qemu/usr/local/bin"
             --os "${{ env.OS_TYPE }}"
@@ -118,9 +125,17 @@ jobs:
             --privkey "$(pwd)/id_rsa"
           )
           if [ "${{ inputs.debug }}" = "true" ]; then
-            node ./image-builder.js "${ARGS[@]}" --debug
+            if [ "${{ inputs.arch }}" = "riscv64" ]; then
+              node ./image-builder.js "${ARGS[@]}" --bios $(pwd)/fw_payload.elf --debug
+            else
+              node ./image-builder.js "${ARGS[@]}" --debug
+            fi
           else
-            node ./image-builder.js "${ARGS[@]}"
+            if [ "${{ inputs.arch }}" = "riscv64" ]; then
+              node ./image-builder.js "${ARGS[@]}" --bios $(pwd)/fw_payload.elf
+            else
+              node ./image-builder.js "${ARGS[@]}"
+            fi
           fi
 
           mv "${QCOW2_FILENAME}" "manyvm-${QCOW2_FILENAME}"

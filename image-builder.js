@@ -238,6 +238,7 @@ try {
     .option("--image <image>", "Path to the qcow2 image file")
     .option("--pubkey <pubkey>", "Path to the public key file")
     .option("--privkey <privkey>", "Path to the private key file")
+    .option("--bios [BIOS]", "Speicify the BIOS file to use")
     .option("--debug", "Enable debug mode")
   
   program.parse();
@@ -273,7 +274,11 @@ try {
     case "riscv64":
       machine = "virt";
       cpu = "rv64";
-      bios = "opensbi-riscv64-generic-fw_dynamic.bin";
+      if (options.bios) {
+        bios = options.bios;
+      } else {
+        show_message("fatal", "For RISC-V, you must specify the BIOS file");
+      }
       break;
     default:
       show_message("fatal", `Unknown architecture: ${arch}`);
