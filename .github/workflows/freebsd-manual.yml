@@ -9,6 +9,9 @@ on:
         required: true
       freebsd_arch:
         required: true
+      debug:
+        required: false
+        default: "false"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event.inputs.release }}-${{ github.event.inputs.arch }}
@@ -105,13 +108,20 @@ jobs:
           QCOW2_FILENAME="FreeBSD-${{ inputs.release }}-RELEASE-${{ inputs.freebsd_arch }}.qcow2"
           npm install -g yarn
           yarn install
-          node ./image-builder.js \
-            --qemu "$(pwd)/qemu/usr/local/bin" \
-            --os "${{ env.OS_TYPE }}" \
-            --arch "${{ inputs.arch }}" \
-            --image "$(pwd)/${QCOW2_FILENAME}" \
-            --pubkey "$(pwd)/id_rsa.pub" \
+          
+          export ARGS=(
+            --qemu "$(pwd)/qemu/usr/local/bin"
+            --os "${{ env.OS_TYPE }}"
+            --arch "${{ inputs.arch }}"
+            --image "$(pwd)/${QCOW2_FILENAME}"
+            --pubkey "$(pwd)/id_rsa.pub"
             --privkey "$(pwd)/id_rsa"
+          )
+          if [ "${{ inputs.debug }}" = "true" ]; then
+            node ./image-builder.js "${ARGS[@]}" --debug
+          else
+            node ./image-builder.js "${ARGS[@]}"
+          fi
 
           mv "${QCOW2_FILENAME}" "manyvm-${QCOW2_FILENAME}"
           echo "Archiving manyvm-$QCOW2_FILENAME"

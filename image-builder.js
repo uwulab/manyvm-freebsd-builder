@@ -1,6 +1,5 @@
 const fs = require("fs");
-const path = require("path");
-const { spawn, execSync, spawnSync } = require("child_process");
+const { spawn, execSync } = require("child_process");
 const { program } = require('commander');
 
 function show_message(type, message) {
