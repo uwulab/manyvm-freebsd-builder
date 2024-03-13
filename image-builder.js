@@ -200,7 +200,7 @@ async function start_vm(qemu_bin, cpu, arch, bios, machine, filename, pubkey, pr
             } else {
               if (pkg_install_start) {
                 if (!pkg_install_in_progress) {
-                  pkg_install_in_progress = concat.includes("Extracting");
+                  pkg_install_in_progress = concat.includes("Updating database") || concat.includes("Bootstrapping pkg");
                   concat = "";
                   enter_presser = setInterval(() => {
                     qemu_process.stdin.write("\n");
