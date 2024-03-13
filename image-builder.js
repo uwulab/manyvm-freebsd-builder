@@ -4,12 +4,12 @@ const { program } = require('commander');
 
 function show_message(type, message) {
   if (type == "error") {
-    console.error(message);
+    process.stdout.write(`${message}\n`);
   } else if (type == "fatal") {
-    console.error(message);
+    process.stdout.write(`${message}\n`);
     process.exit(1);
   } else {
-    console.log(message);
+    process.stdout.write(`${message}\n`);
   }
 }
 
