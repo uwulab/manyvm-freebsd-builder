@@ -24,11 +24,11 @@ jobs:
           - { release: "14.0", arch: "x86_64", freebsd_arch: "amd64" }
           - { release: "13.3", arch: "x86_64", freebsd_arch: "amd64" }
           - { release: "13.2", arch: "x86_64", freebsd_arch: "amd64" }
-          - { release: "12.4", arch: "x86_64", freebsd_arch: "amd64" }
+          # - { release: "12.4", arch: "x86_64", freebsd_arch: "amd64" }
           - { release: "14.0", arch: "aarch64", freebsd_arch: "arm64-aarch64" }
           - { release: "13.3", arch: "aarch64", freebsd_arch: "arm64-aarch64" }
           - { release: "13.2", arch: "aarch64", freebsd_arch: "arm64-aarch64" }
-          - { release: "12.4", arch: "aarch64", freebsd_arch: "arm64-aarch64" }
+          # - { release: "12.4", arch: "aarch64", freebsd_arch: "arm64-aarch64" }
           # - { release: "14.0", arch: "i386", freebsd_arch: "i386" }
           # - { release: "13.3", arch: "i386", freebsd_arch: "i386" }
           # - { release: "13.2", arch: "i386", freebsd_arch: "i386" }
