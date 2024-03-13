@@ -56,10 +56,19 @@ async function start_vm(qemu_bin, cpu, arch, bios, machine, filename, pubkey_con
     "-bios", bios,
     "-m", "512",
     "-nographic",
-    "-drive", `file=${filename},format=qcow2`,
     "-netdev", `user,id=net0,hostfwd=tcp::2222-:22`,
-    "-device", "virtio-net-pci,netdev=net0"
+    "-device", "virtio-net-pci,netdev=net0",
+    "-device", "virtio-rng-pci",
   ];
+  switch (arch) {
+    case "riscv64":
+      qemu_args.push("-device", `file=${filename},format=qcow2,id=hd0`);
+      qemu_args.push("-device", `virtio-blk-device,drive=hd0`);
+      break;
+    default:
+      qemu_args.push("-drive", `file=${filename},format=qcow2`);
+      break;
+  }
 
   qemu_wrapper(qemu_executable, qemu_args, (qemu_process) => {
     show_message("info", "VM is started");
