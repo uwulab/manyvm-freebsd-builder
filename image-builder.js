@@ -46,7 +46,7 @@ function qemu_wrapper(qemu_cmd, qemu_args, ready_callback) {
   return qemuProcess;
 };
 
-async function start_vm(qemu_bin, cpu, arch, bios, machine, filename, pubkey, privkey) {
+async function start_vm(qemu_bin, cpu, arch, bios, machine, filename, pubkey_content, privkey_path, debug) {
   show_message("info", "Starting VM");
 
   const qemu_executable = `${qemu_bin}/qemu-system-${arch}`;
@@ -104,7 +104,7 @@ async function start_vm(qemu_bin, cpu, arch, bios, machine, filename, pubkey, pr
       qemu_process.stdin.write(cmd)
       show_message("info", cmd)
       execSync("sleep 1")
-      const pubkey_chunks = pubkey.match(/.{1,32}/g)
+      const pubkey_chunks = pubkey_content.match(/.{1,32}/g)
       pubkey_chunks.forEach((chunk) => {
         qemu_process.stdin.write(chunk)
         show_message("info", chunk)
@@ -180,7 +180,7 @@ async function start_vm(qemu_bin, cpu, arch, bios, machine, filename, pubkey, pr
     let waitForPrompt = (() => {
       let concat = "";
       return (data) => {
-        if (show_stdout) {
+        if (show_stdout || debug) {
           process.stdout.write(data);
         }
         const msg = data.toString();
@@ -200,11 +200,12 @@ async function start_vm(qemu_bin, cpu, arch, bios, machine, filename, pubkey, pr
             } else {
               if (pkg_install_start) {
                 if (!pkg_install_in_progress) {
-                  pkg_install_in_progress = concat.includes("Updating database") || concat.includes("Bootstrapping pkg");
-                  concat = "";
-                  enter_presser = setInterval(() => {
-                    qemu_process.stdin.write("\n");
-                  }, 1000);
+                  pkg_install_in_progress = concat.includes("Updating database") || concat.includes("Bootstrapping pkg") || concat.includes("Updating FreeBSD repository");
+                  if (enter_presser == undefined) {
+                    enter_presser = setInterval(() => {
+                      qemu_process.stdin.write("\n");
+                    }, 1000);
+                  }
                 } else {
                   clearInterval(enter_presser);
                   show_message("info", "pkg install done. VM will be ready to use after shutting down.");
@@ -238,6 +239,7 @@ try {
     .option("--image <image>", "Path to the qcow2 image file")
     .option("--pubkey <pubkey>", "Path to the public key file")
     .option("--privkey <privkey>", "Path to the private key file")
+    .option("--debug", "Enable debug mode")
   
   program.parse();
 
@@ -280,7 +282,7 @@ try {
 
   const pubkey = fs.readFileSync(options.pubkey, "utf8");
 
-  start_vm(options.qemu, cpu, arch, bios, machine, image_filename, pubkey, options.privkey);
+  start_vm(options.qemu, cpu, arch, bios, machine, image_filename, pubkey, options.privkey, options.debug);
 } catch (error) {
   show_message("fatal", error.message);
 }
