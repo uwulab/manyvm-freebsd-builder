@@ -79,9 +79,11 @@ async function start_vm(qemu_bin, cpu, arch, bios, machine, filename, pubkey, pr
       setTimeout(() => {
         if (qemu_exited) {
           show_message("info", "VM is stopped.");
+          process.exit(0);
         } else {
           show_message("info", "force shutdown if not stopped in 30 seconds.");
           qemu_process.kill();
+          process.exit(0);
         }
       }, 30000)
     }
