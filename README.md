@@ -1,1 +1,46 @@
 # manyvm-freebsd-builder
+
+<table>
+<thead>
+  <tr>
+    <th colspan="5">Availability<br></th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td><b>Release/Architecture</b></td>
+    <td>x86_64</td>
+    <td>i386</td>
+    <td>aarch64</td>
+    <td>riscv64</td>
+  </tr>
+  <tr>
+    <td>14.0</td>
+    <td>✓</td>
+    <td></td>
+    <td>✓</td>
+    <td>✓</td>
+  </tr>
+  <tr>
+    <td>13.3</td>
+    <td>✓</td>
+    <td></td>
+    <td>✓</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>12.4</td>
+    <td>✓</td>
+    <td></td>
+    <td>✓</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>13.2</td>
+    <td>✓</td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+</tbody>
+</table>
